@@ -1,0 +1,37 @@
+name: ACTIONS
+
+on:
+  schedule:
+    - cron: '0 0 * * 0' # Raz w tygodniu, w niedzielę o północy
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+  jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run install script
+        run: powershell .\scripts\installResources.ps1
+
+      - name: Build EXE
+        run: pyinstaller --onefile your_script.py
+
+      - name: Upload EXE
+        uses: actions/upload-artifact@v3
+        with:
+          name: my_executable
+          path: dist/your_script.exe
