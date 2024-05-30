@@ -1,37 +1,44 @@
-name: ACTIONS
+name: Build and Upload EXE
 
 on:
   schedule:
-    - cron: '0 0 * * 0' # Raz w tygodniu, w niedzielę o północy
+    - cron: '0 0 * * 1'
   push:
     branches:
       - master
   workflow_dispatch:
 
-  jobs:
+jobs:
   build:
     runs-on: windows-latest
+    defaults:
+      run:
+        shell: pwsh
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: '3.x'
 
       - name: Install dependencies
-        run: pip install -r requirements.txt
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
 
-      - name: Run install script
-        run: powershell .\scripts\installResources.ps1
+      - name: Run installResources.ps1
+        run: .\installResources.ps1
 
-      - name: Build EXE
-        run: pyinstaller --onefile your_script.py
+      - name: Build the EXE
+        run: |
+          pyinstaller --onefile your_script.py
+        shell: cmd
 
       - name: Upload EXE
         uses: actions/upload-artifact@v3
         with:
-          name: my_executable
+          name: built-exe
           path: dist/your_script.exe
